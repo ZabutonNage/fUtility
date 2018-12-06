@@ -1,15 +1,13 @@
-module.exports = {
-    Maybe
-};
+module.exports = Maybe;
 
 
-const Nothing = {};
+const nothing = {};
 
 
 function Maybe(value) {
     return Object.freeze({
         map: f => isNothing(value)
-            ? Maybe(Nothing)
+            ? Maybe(nothing)
             : Maybe(f(value)),
         fromMaybe: defVal => isNothing(value)
             ? defVal
@@ -20,7 +18,7 @@ function Maybe(value) {
 
 function isNothing(val) {
     return val === undefined
-        || val === Nothing
+        || val === nothing
         || val === null
-        || typeof val === `number` && isNaN(val);
+        || Number.isNaN(val);
 }
