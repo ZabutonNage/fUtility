@@ -11,6 +11,9 @@ function Maybe(value) {
             : Maybe(f(value)),
         fromMaybe: defVal => isNothing(value)
             ? defVal
+            : value,
+        fromMaybe$: defFn => isNothing(value)
+            ? defFn()
             : value
     });
 }
