@@ -1,0 +1,22 @@
+{
+  "name": "futility",
+  "version": "0.0.0",
+  "description": "fUtility is a collection of functional utilities for JavaScript.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZabutonNage/fUtility.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ZabutonNage/fUtility/issues"
+  },
+  "homepage": "https://github.com/ZabutonNage/fUtility#readme",
+  "devDependencies": {
+    "jscheck": "git+https://git@github.com/ZabutonNage/JSCheck.git#zn-master"
+  }
+}
