@@ -1,6 +1,6 @@
 const jsc = require(`jscheck`)();
 const fswitch = require(`./fswitch`);
-const { eq, id } = require(`../../testing/utils`);
+const { eq, id } = require(`../../testUtils`);
 
 
 jsc.claim(
