@@ -9,14 +9,20 @@ module.exports = {
 };
 
 
-// TODO offer wildcards as module exports and as local params in patternMatch callback
- // multiple key wildcards in objects should be interesting
+// TODO multiple key-wildcards in objects
 
-function patternMatch(args) {
+function patternMatch(args, scoped) {
+    if (scoped === null) {
+        debugger
+    }
+    if (scoped !== undefined && typeof scoped !== `function`) throw Error(`Parameter 'scoped' must be a function.`);
+
     const inputArgs = Array.from(args);
     const unmatched = {};
 
-    return pm(unmatched);
+    return typeof scoped === `function`
+        ? scoped(pm(unmatched), _, __)
+        : pm(unmatched);
 
     function pm(val) {
         return Object.freeze({
