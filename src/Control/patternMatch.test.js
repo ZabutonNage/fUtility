@@ -7,6 +7,60 @@ const { queue, only, pick, skip } = tests;
 
 queue(() => {
     jsc.claim(
+        `global mode`,
+        verdict => {
+            const pm = patternMatch([]);
+            verdict(
+                !!pm
+                && typeof pm === `object`
+                && Object.keys(pm).length === 2
+                && pm.hasOwnProperty(`pattern`)
+                && pm.hasOwnProperty(`otherwise`)
+            );
+        }
+    );
+});
+
+queue(() => {
+    jsc.claim(
+        `scoped mode`,
+        verdict => verdict(
+            `foo` === patternMatch([], pm => pm
+                .otherwise(() => `foo`)
+            )
+        )
+    );
+});
+
+queue(() => {
+    jsc.claim(
+        `invalid scoped callback throws`,
+        (verdict, a) => {
+            try {
+                patternMatch([], a);
+                verdict(a === undefined || typeof a === `function`);
+            }
+            catch (ex) {
+                verdict(ex.message === `Parameter 'scoped' must be a function.`);
+            }
+        },
+        [jsc.wun_of([jsc.any(), jsc.literal(() => {})], [99, 1])]
+    );
+});
+
+queue(() => {
+    jsc.claim(
+        `scoped and global wildcards identical`,
+        verdict => verdict(
+            patternMatch([], (pm, _$, __$) => pm
+                .otherwise(() => _ === _$ && __ === __$)
+            )
+        )
+    );
+});
+
+queue(() => {
+    jsc.claim(
         `no empty pattern`,
         (verdict) => {
             try {
