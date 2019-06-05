@@ -1,10 +1,13 @@
 module.exports = SafeAccess;
 
 
+const symId = Symbol();
 const invalid = {};
 
 
 function SafeAccess(obj) {
+    if (Object.getOwnPropertySymbols(obj).includes(symId)) return obj;
+
     const lastProxyable = { value: undefined };
     const handler = {
         // TODO consider blocking "set" etc.
@@ -27,7 +30,10 @@ function SafeAccess(obj) {
         }
     };
 
-    return new Proxy(obj, handler);
+    const p = new Proxy(obj, handler);
+    p[symId] = 0;
+
+    return p;
 }
 
 
