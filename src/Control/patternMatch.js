@@ -12,9 +12,6 @@ module.exports = {
 // TODO multiple key-wildcards in objects
 
 function patternMatch(args, scoped) {
-    if (scoped === null) {
-        debugger
-    }
     if (scoped !== undefined && typeof scoped !== `function`) throw Error(`Parameter 'scoped' must be a function.`);
 
     const inputArgs = Array.from(args);
