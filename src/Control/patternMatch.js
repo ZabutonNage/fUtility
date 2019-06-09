@@ -57,7 +57,7 @@ function arrEqDeep(arrPattern, arrVals) {
 
 function deepEq(x, y) {
     if (x === y) return true;
-    if (x === _ || y === _) return true;
+    if (x === _) return true;
     if (typeof x !== typeof y) return false;
     if (Array.isArray(x) && Array.isArray(y)) return arrEqDeep(x, y);
     if (Array.isArray(x) || Array.isArray(y)) return false;
@@ -78,13 +78,10 @@ function objEqDeep(x, y) {
 
     const hasRest = keysX.indexOf(`__`) > -1;
     const hasAny = keysX.indexOf(`_`) > -1;
+    const requiredKeys = regularKeysX.length + (hasAny ? 1 : 0);
 
-    if (hasAny) {
-        if (hasRest && !(keysY.length > regularKeysX.length)) return false;
-        if (!hasRest && keysY.length -1 !== regularKeysX.length) return false;
-    }
-
-    if (!hasAny && !hasRest && keysY.length !== regularKeysX.length) return false;
+    if (hasRest && keysY.length < requiredKeys) return false;
+    if (!hasRest && keysY.length !== requiredKeys) return false;
 
     return regularKeysX.every(kx => deepEq(x[kx], y[kx]));
 }
