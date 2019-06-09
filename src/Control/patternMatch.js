@@ -1,5 +1,6 @@
 const _ = {};
 const __ = {};
+const _addl = {};
 
 
 module.exports = {
@@ -9,7 +10,6 @@ module.exports = {
 };
 
 
-// TODO multiple key-wildcards in objects
 // TODO guards
 // TODO key wildcard, match on value
 // TODO consider accepting pattern handlers as the second param to .pattern.
@@ -24,7 +24,7 @@ function patternMatch(args, scoped) {
     const unmatched = {};
 
     return typeof scoped === `function`
-        ? scoped(pm(unmatched), _, __)
+        ? scoped(pm(unmatched), _, __, _addl, _addl, _addl)
         : pm(unmatched);
 
     function pm(val) {
@@ -78,13 +78,14 @@ function objEqDeep(x, y) {
     const keysX = Object.keys(x);
     const keysY = Object.keys(y);
 
-    const regularKeysX = keysX.filter(k => k !== `_` && k !== `__`);
+    const regularKeysX = keysX.filter(k => k !== `_` && k !== `__` && x[k] !== _addl);
 
     if (!regularKeysX.every(k => keysY.includes(k))) return false;
 
     const hasRest = keysX.indexOf(`__`) > -1;
     const hasAny = keysX.indexOf(`_`) > -1;
-    const requiredKeys = regularKeysX.length + (hasAny ? 1 : 0);
+    const additionals = Object.values(x).filter(v => v === _addl).length;
+    const requiredKeys = regularKeysX.length + (hasAny ? 1 : 0) + additionals;
 
     if (hasRest && keysY.length < requiredKeys) return false;
     if (!hasRest && keysY.length !== requiredKeys) return false;

@@ -506,8 +506,6 @@ queue(() => {
     }
 });
 
-// TODO wildcards: object, multiple keys
-
 queue(() => {
     jsc.claim(
         `wildcards: object, rest`,
@@ -539,6 +537,115 @@ queue(() => {
         return `rest`;
     }
 });
+
+queue(() => {
+    jsc.claim(
+        `additional wildcards (scoped): 3 additionals max`,
+        verdict => verdict(
+            patternMatch([], (pm, _, __, _1, _2, _3, _4) => pm
+                .otherwise(() => _4 === undefined && [_, __, _1, _2, _3].every(wild => wild !== undefined))
+            )
+        )
+    );
+});
+
+// single wildcard must be named _
+// { _ }                -> key and value IGNORED
+// { foo: _ }           -> key matched, value IGNORED
+// { _1 }               -> key and value IGNORED
+// alias = _1 { alias } -> key and value IGNORED
+// ergo { alias: _1 }   -> key and value IGNORED
+// if
+// alias = _ { alias }  -> key and value IGNORED
+// then { alias: _ }    -> key and value IGNORED
+// mismatch to
+// { foo: _ }           -> key matched, value IGNORED
+queue(() => {
+    jsc.claim(
+        `additional wildcards (scoped): object, key/value roles`,
+        (verdict, obj) => verdict(
+            crossCheck(obj) === patternMatch([obj], (pm, _, __, _1, _2, _3) => pm
+                .pattern({ _1 })(
+                    () => `any single key object`)
+                .pattern({ _2 })(
+                    () => `any single key object (unreachable)`)
+                .pattern({ foo: _, bar: _2 })(
+                    () => `foo + aliased additional`)
+                .pattern({ _, _3 })(
+                    () => `any two key object`)
+                .otherwise(
+                    () => `empty or three-keyed object`)
+            )
+        ),
+        [jsc.object(
+            jsc.array(
+                jsc.wun_of(
+                    [0, 3, jsc.wun_of([1, 2, 2])],
+                    [1, 1, 40]),
+                jsc.wun_of([`foo`, jsc.any()], [1, 3])
+            ),
+            jsc.any()
+        )],
+        // crossCheck
+    );
+
+    function crossCheck(obj) {
+        switch (Object.keys(obj).length) {
+            case 0:
+            case 3: return `empty or three-keyed object`;
+            case 1: return `any single key object`;
+            case 2: return obj.hasOwnProperty(`foo`)
+                ? `foo + aliased additional`
+                : `any two key object`;
+            default: throw Error(`crossCheck not defined for ${JSON.stringify(obj)}`);
+        }
+    }
+});
+
+queue(() => {
+    jsc.claim(
+        `additional wildcards (scoped): object, multiple keys`,
+        (verdict, obj) => verdict(
+            patternMatch([obj], (pm, _, __, _1, _2, _3) => pm
+                .pattern({ _1 })(
+                    obj$ => Object.keys(obj$).length === 1)
+                .pattern({ _, _1 })(
+                    obj$ => Object.keys(obj$).length === 2)
+                .pattern({ _1, _2, _3 })(
+                    obj$ => Object.keys(obj$).length === 3)
+                .pattern({ _, _1, _2, _3 })(
+                    obj$ => Object.keys(obj$).length === 4)
+                .otherwise(
+                    obj$ => Object.keys(obj$).length === 0 || Object.keys(obj$).length === 5)
+            )
+        ),
+        [jsc.object(jsc.wun_of([0, 5, 1, 2, 3, 4], [1, 1, 10, 10, 10, 10]))],
+        // obj => `object's key count: ${Object.keys(obj).length}`
+    );
+});
+
+/*
+TODO define behaviour
+ throwing might be best
+
+pick(() => {
+    jsc.claim(
+        `additional wildcards (scoped): array`,
+        (verdict) => verdict(
+            false
+        )
+    );
+});
+
+pick(() => {
+    jsc.claim(
+        `additional wildcards (scoped): top-level`,
+        (verdict) => verdict(
+            false
+        )
+    );
+});
+*/
 
 
 tests.run(() => jsc.check({
