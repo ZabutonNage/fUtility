@@ -50,17 +50,6 @@ queue(() => {
 
 queue(() => {
     jsc.claim(
-        `scoped and global wildcards identical`,
-        verdict => verdict(
-            patternMatch([], (pm, _$, __$) => pm
-                .otherwise(() => _ === _$ && __ === __$)
-            )
-        )
-    );
-});
-
-queue(() => {
-    jsc.claim(
         `no empty pattern`,
         (verdict) => {
             try {
@@ -330,6 +319,17 @@ queue(() => {
 
         return `otherwise`;
     }
+});
+
+queue(() => {
+    jsc.claim(
+        `wildcards: scoped and global identical`,
+        verdict => verdict(
+            patternMatch([], (pm, _$, __$) => pm
+                .otherwise(() => _ === _$ && __ === __$)
+            )
+        )
+    );
 });
 
 queue(() => {
