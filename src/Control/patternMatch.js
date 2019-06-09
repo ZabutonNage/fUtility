@@ -10,6 +10,12 @@ module.exports = {
 
 
 // TODO multiple key-wildcards in objects
+// TODO guards
+// TODO key wildcard, match on value
+// TODO consider accepting pattern handlers as the second param to .pattern.
+//  an extra comma in exchange for fewer parentheses is more pleasant to read and could be a good alternative
+//  however, this is not easily possible as .pattern may take any amount of args which are considered part of the pattern
+// TODO unlimited amount of additional wildcards
 
 function patternMatch(args, scoped) {
     if (scoped !== undefined && typeof scoped !== `function`) throw Error(`Parameter 'scoped' must be a function.`);
