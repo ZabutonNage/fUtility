@@ -478,7 +478,7 @@ queue(() => {
         (verdict, obj) => verdict(
             crossCheck(obj) === patternMatch([obj])
                 .pattern({ foo: _, bar: _ })(() => `foo bar`)
-                .pattern({ foo: `foo`, bar: _ })(() => `unreachable`)
+                .pattern({ foo: `foo`, bar: _ })(unreachable)
                 .pattern({ _, bar: _ })(() => `any bar`)
                 .pattern({ foo: _, _ })(() => `foo any`)
                 .otherwise(() => `otherwise`)
@@ -515,8 +515,8 @@ queue(() => {
                 // TODO investigate if it's feasible to enforce 'rest' to be in last position
                 .pattern({ __, bar: _ })(() => `bar any rest`)
                 .pattern({ __ })(() => `rest`)
-                .pattern({ _ })(() => `unreachable`)
-                .otherwise(() => `unreachable`)
+                .pattern({ _ })(unreachable)
+                .otherwise(unreachable)
         ),
         [
             jsc.wun_of([
@@ -668,4 +668,7 @@ function always() {
 }
 function never() {
     return false;
+}
+function unreachable() {
+    return `unreachable`;
 }
