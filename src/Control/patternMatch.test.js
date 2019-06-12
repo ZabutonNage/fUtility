@@ -647,6 +647,65 @@ pick(() => {
 });
 */
 
+queue(() => {
+    jsc.claim(
+        `guards: top-level wildcarded values passed to guard`,
+        (verdict, a, b) => verdict(
+            crossCheck(a, b) === patternMatch([a, b], (pm, _) => pm
+                .pattern(1, 1).if((a$, b$) => a$ === undefined && b$ === undefined)(() => `1. no wildcards`)
+                .pattern(_, 1).if((a$, unused) => a$ === a && unused === undefined)(() => `2. left wildcard`)
+                .pattern(1, _).if((b$, unused) => b$ === b && unused === undefined)(() => `3. right wildcard`)
+                .pattern(_, _).if((a$, b$) => a$ === a && b$ === b)(() => `4. both wildcards`)
+                .pattern(_, _)(unreachable)
+                .otherwise(unreachable)
+            )
+        ),
+        [
+            jsc.wun_of([1, jsc.any()]),
+            jsc.wun_of([1, jsc.any()]),
+        ],
+        (a, b) => Number.isNaN(a) || Number.isNaN(b) ? undefined : ``
+    );
+
+    function crossCheck(a, b) {
+        if (a === 1 && b === 1) return `1. no wildcards`;
+        if (b === 1) return `2. left wildcard`;
+        if (a === 1) return `3. right wildcard`;
+        return `4. both wildcards`;
+    }
+});
+
+queue(() => {
+    jsc.claim(
+        `guards: fall-through`,
+        (verdict, a) => verdict(
+            crossCheck(a) === patternMatch([a], (pm, _) => pm
+                .pattern(_)
+                    .if(gt(4))(() => `1. gt 4`)
+                    .if(gt(3))(() => `2. gt 3`)
+                .pattern(3)(() => `3. three`)
+                .pattern(_)
+                    .if(gt(1))(() => `4. gt 1`)
+                .otherwise(() => `5. otherwise`)
+            )
+        ),
+        [
+            jsc.wun_of([jsc.integer(5), jsc.any()], [12, 1])
+        ]
+    );
+
+    function gt(y) {
+        return x => x > y;
+    }
+    function crossCheck(a) {
+        if (a > 4) return `1. gt 4`;
+        if (a > 3) return `2. gt 3`;
+        if (a === 3) return `3. three`;
+        if (a > 1) return `4. gt 1`;
+        return `5. otherwise`;
+    }
+});
+
 
 tests.run(() => jsc.check({
     nr_trials: 10000,
