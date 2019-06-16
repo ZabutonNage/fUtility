@@ -10,7 +10,6 @@ module.exports = {
 };
 
 
-// TODO guards
 // TODO key wildcard, match on value
 // TODO consider accepting pattern handlers as the second param to .pattern.
 //  an extra comma in exchange for fewer parentheses is more pleasant to read and could be a good alternative
@@ -23,25 +22,57 @@ function patternMatch(args, scoped) {
     const inputArgs = Array.from(args);
     const unmatched = {};
 
+    const pm = Object.freeze({
+        pattern: pattern$(unmatched)
+    });
+
     return typeof scoped === `function`
-        ? scoped(pm(unmatched), _, __, _addl, _addl, _addl)
-        : pm(unmatched);
+        ? scoped(pm, _, __, _addl, _addl, _addl)
+        : pm;
 
-    function pm(val) {
-        return Object.freeze({
-            pattern: (...patternArgs) => {
-                if (patternArgs.length === 0) throw Error(`No empty pattern allowed.`);
-                if (patternArgs.length !== inputArgs.length) throw Error(`Number of pattern arguments must equal the number of arguments to match.`);
-                if (patternArgs.indexOf(__) !== -1) throw Error(`'rest' wildcard is not allowed in top-level pattern.`);
 
-                return val === unmatched && arrEqDeep(patternArgs, inputArgs)
-                    ? f => pm(f(...inputArgs))
-                    : () => pm(val);
-            },
-            otherwise: f => val === unmatched
-                ? f(...inputArgs)
-                : val
-        });
+    function pattern$(val) {
+        return (...patternArgs) => {
+            if (patternArgs.length === 0) throw Error(`No empty pattern allowed.`);
+            if (patternArgs.length !== inputArgs.length) throw Error(`Number of pattern arguments must equal the number of arguments to match.`);
+            if (patternArgs.indexOf(__) !== -1) throw Error(`'rest' wildcard is not allowed in top-level pattern.`);
+
+            const matched = val === unmatched && arrEqDeep(patternArgs, inputArgs);
+            const wildcardedVals = wildcardedValues(inputArgs, patternArgs);
+
+            const fn = pHandler => {
+                const nextVal = matched ? pHandler(...inputArgs) : val;
+                return Object.freeze({
+                    pattern: pattern$(nextVal),
+                    otherwise: otherwise$(nextVal)
+                });
+            };
+            fn.if = if$(val, wildcardedVals, matched);
+
+            return fn;
+        };
+    }
+    function if$(val, wildcardedVals, guardable) {
+        return guard => pHandler => {
+            const guardPassed = guardable && guard(...wildcardedVals);
+            const nextVal = guardPassed
+                ? pHandler(...inputArgs)
+                : val;
+            const nextGuardable = guardPassed
+                ? false
+                : guardable;
+
+            return Object.freeze({
+                pattern: pattern$(nextVal),
+                if: if$(nextVal, wildcardedVals, nextGuardable),
+                otherwise: otherwise$(nextVal)
+            });
+        };
+    }
+    function otherwise$(val) {
+        return f => val === unmatched
+            ? f(...inputArgs)
+            : val;
     }
 }
 
@@ -91,4 +122,11 @@ function objEqDeep(x, y) {
     if (!hasRest && keysY.length !== requiredKeys) return false;
 
     return regularKeysX.every(kx => deepEq(x[kx], y[kx]));
+}
+
+function wildcardedValues(inputArgs, patternArgs) {
+    return patternArgs
+        .map((arg, i) => ({ arg, i }))
+        .filter(a => a.arg === _)
+        .map(a => inputArgs[a.i]);
 }

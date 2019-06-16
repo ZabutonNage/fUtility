@@ -13,9 +13,8 @@ queue(() => {
             verdict(
                 !!pm
                 && typeof pm === `object`
-                && Object.keys(pm).length === 2
+                && Object.keys(pm).length === 1
                 && pm.hasOwnProperty(`pattern`)
-                && pm.hasOwnProperty(`otherwise`)
             );
         }
     );
@@ -25,7 +24,8 @@ queue(() => {
     jsc.claim(
         `scoped mode`,
         verdict => verdict(
-            `foo` === patternMatch([], pm => pm
+            `foo` === patternMatch([0], pm => pm
+                .pattern(`ignore`)(never)
                 .otherwise(() => `foo`)
             )
         )
@@ -325,7 +325,8 @@ queue(() => {
     jsc.claim(
         `wildcards: scoped and global identical`,
         verdict => verdict(
-            patternMatch([], (pm, _$, __$) => pm
+            patternMatch([0], (pm, _$, __$) => pm
+                .pattern(`ignore`)(never)
                 .otherwise(() => _ === _$ && __ === __$)
             )
         )
@@ -542,7 +543,8 @@ queue(() => {
     jsc.claim(
         `additional wildcards (scoped): 3 additionals max`,
         verdict => verdict(
-            patternMatch([], (pm, _, __, _1, _2, _3, _4) => pm
+            patternMatch([0], (pm, _, __, _1, _2, _3, _4) => pm
+                .pattern(`ignore`)(never)
                 .otherwise(() => _4 === undefined && [_, __, _1, _2, _3].every(wild => wild !== undefined))
             )
         )
