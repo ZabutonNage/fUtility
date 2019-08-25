@@ -1,6 +1,6 @@
 const jsc = require(`jscheck`)();
 const fswitch = require(`./fswitch`);
-const { eq, id } = require(`../../testUtils`);
+const { eq } = require(`../../testUtils`);
 
 
 jsc.claim(
@@ -9,11 +9,11 @@ jsc.claim(
         const fn = () => {};
 
         return verdict(
-            (str === `fo` ? fn : str) === fswitch(str)
+            (str === `fo` ? fn : str.toUpperCase()) === fswitch(str)
                 .case(eq(`fo`), fn)
-                .case(eq(`of`), `of`)
-                .case(eq(`ff`), `ff`)
-                .otherwise(`oo`)
+                .case(eq(`of`), `OF`)
+                .case(eq(`ff`), `FF`)
+                .otherwise(`OO`)
         );
     },
     [jsc.string(2, jsc.character(`fo`))],
@@ -26,11 +26,11 @@ jsc.claim(
         const fn = () => {};
 
         return verdict(
-            (str === `fo` ? fn : str) === fswitch(str)
+            (str === `fo` ? fn : str.toUpperCase()) === fswitch(str)
                 .case(eq(`fo`), fn)
-                .case(eq(`of`), `of`)
-                .case(eq(`ff`), `ff`)
-                .otherwise_(() => `oo`)
+                .case(eq(`of`), `OF`)
+                .case(eq(`ff`), `FF`)
+                .otherwise_(str$ => str$.toUpperCase())
         );
     },
     [jsc.string(2, jsc.character(`fo`))],
@@ -40,11 +40,11 @@ jsc.claim(
 jsc.claim(
     `functional cases, literal otherwise`,
     (verdict, str) => verdict(
-        str === fswitch(str)
-            .case_(eq(`fo`), id)
-            .case_(eq(`of`), () => `of`)
-            .case_(eq(`ff`), () => `ff`)
-            .otherwise(`oo`)
+        str.toUpperCase() === fswitch(str)
+            .case_(eq(`fo`), _ => `FO`)
+            .case_(eq(`of`), str$ => str$.toUpperCase())
+            .case_(eq(`ff`), toUpper)
+            .otherwise(`OO`)
     ),
     [jsc.string(2, jsc.character(`fo`))],
     (str) => str
@@ -53,11 +53,37 @@ jsc.claim(
 jsc.claim(
     `functional cases, functional otherwise`,
     (verdict, str) => verdict(
-        str === fswitch(str)
-            .case_(eq(`fo`), id)
-            .case_(eq(`of`), () => `of`)
-            .case_(eq(`ff`), () => `ff`)
-            .otherwise_(() => `oo`)
+        str.toUpperCase() === fswitch(str)
+            .case_(eq(`fo`), toUpper)
+            .case_(eq(`of`), toUpper)
+            .case_(eq(`ff`), toUpper)
+            .otherwise_(toUpper)
+    ),
+    [jsc.string(2, jsc.character(`fo`))],
+    (str) => str
+);
+
+jsc.claim(
+    `mixed literal and functional cases, literal otherwise`,
+    (verdict, str) => verdict(
+        str.toUpperCase() === fswitch(str)
+            .case_(eq(`fo`), toUpper)
+            .case(eq(`of`), `OF`)
+            .case_(eq(`ff`), toUpper)
+            .otherwise(`OO`)
+    ),
+    [jsc.string(2, jsc.character(`fo`))],
+    (str) => str
+);
+
+jsc.claim(
+    `mixed literal and functional cases, functional otherwise`,
+    (verdict, str) => verdict(
+        str.toUpperCase() === fswitch(str)
+            .case(eq(`fo`), `FO`)
+            .case_(eq(`of`), toUpper)
+            .case(eq(`ff`), `FF`)
+            .otherwise_(toUpper)
     ),
     [jsc.string(2, jsc.character(`fo`))],
     (str) => str
@@ -71,3 +97,9 @@ jsc.check({
     on_report: console.log,
     on_result: obj => console.log(`on_result:`, obj)
 });
+
+
+
+function toUpper(str) {
+    return str.toUpperCase();
+}
