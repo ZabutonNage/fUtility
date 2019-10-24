@@ -42,11 +42,11 @@ function FnQueue() {
     const picked = [];
 
     return Object.freeze({
-        queue: fn => { regular.push(fn); },
-        only: fn => { theOnly[0] = theOnly[0] || fn; },
-        pick: fn => { picked.push(fn); },
+        queue: fn => void regular.push(fn),
+        only: fn => void (theOnly[0] = theOnly[0] || fn),
+        pick: fn => void picked.push(fn),
         skip: () => {},
-        run: fn => {
+        run: done => {
             if (theOnly[0]) {
                 theOnly[0]();
             }
@@ -57,7 +57,7 @@ function FnQueue() {
                 regular.forEach(f => f());
             }
 
-            fn();
+            done();
         }
     });
 }
